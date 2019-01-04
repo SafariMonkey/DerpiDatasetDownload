@@ -6,7 +6,8 @@ from derpibooru.image import Image
 from multiprocessing.pool import ThreadPool
 
 
-_FILE_PATH = os.path.abspath(os.path.dirname(__file__))
+_THIS_FILE_PATH = os.path.abspath(os.path.dirname(__file__))
+_DATA_PATH = os.getenv("DERPIDL_DATA_PATH", "{}/data".format(_THIS_FILE_PATH))
 
 
 class FetchFailed(Exception):
@@ -56,7 +57,7 @@ def fetch_image(image_id, scaling="large", overwite=False):
     image = Image(get_image_metadata(image_id))
 
     # figure out where to put the data
-    directory = build_path(image_id, prefix=_FILE_PATH + "/images/")
+    directory = build_path(image_id, prefix=_DATA_PATH + "/images")
 
     # get image URL for desired scale
     url = image.representations[scaling]
@@ -86,7 +87,7 @@ def fetch_image(image_id, scaling="large", overwite=False):
 def build_path(image_id, prefix=""):
     folder2 = image_id % 1000
     folder1 = image_id - folder2
-    return "{}{:04d}/{:03d}".format(prefix, folder1, folder2)
+    return "{}/{:04d}/{:03d}".format(prefix, folder1, folder2)
 
 
 def main():
