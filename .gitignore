@@ -1,5 +1,7 @@
 devenv
 data
+scratch-data
+user_key.txt
 
 # Python
 __pycache__/
