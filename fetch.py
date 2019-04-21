@@ -94,13 +94,19 @@ def get_random_images(seed, per_page, page):
     return response.json()['search']
 
 
-def iter_random_images(seed, per_page, page, batchsize):
+def iter_random_images(seed, per_page, page, executor, batch_size=1):
+    last_batches = []
     while True:
-        batch = []
-        for _ in range(batchsize):
-            batch += get_random_images(seed, per_page, page)
+        futures = []
+        for _ in range(batch_size):
+            future = executor.submit(get_random_images, seed, per_page, page)
+            futures.append(future)
             page += 1
-        yield (page, batch)
+        if len(last_batches) > 0:
+            yield (page-1-batch_size, last_batches)
+        last_batches = [item
+                        for future in futures
+                        for item in future.result()]
 
 
 
@@ -236,14 +242,19 @@ def main():
 
     page = start_page
     with ProcessPoolExecutor(max_workers=8) as executor:
-        image_iterator = iter_random_images(seed=209384, per_page=50, page=page, batchsize=4)
+        image_iterator = iter_random_images(
+            seed=209384,
+            per_page=50,
+            page=page,
+            executor=executor,
+            batch_size=2,
+        )
         try:
             for (page, batch) in image_iterator:
                 persist_page(page)
                 fetch_images_parallel(batch, executor=executor)
                 total_fetch_counter += len(batch)
                 fetch_counter += len(batch)
-                logging.info(f"fetched batch of {len(batch)}, page {page}")
                 if fetch_counter >= 1000:
                     logging.info(f"fetched {fetch_counter} since last, page {page}")
                     fetch_counter = 0
