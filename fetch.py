@@ -9,6 +9,7 @@ import logging
 
 from derpibooru.image import Image
 from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 
 from utils import (
     setup_logging,
@@ -220,7 +221,8 @@ def fetch_images_parallel(images, executor=None):
     
 
 def persist_page(page):
-    with open(_DATA_PATH+'/current_page.txt', 'w+') as f:
+    Path(_DATA_PATH).mkdir(parents=True, exist_ok=True)
+    with open(_DATA_PATH+'/current_page.txt', 'w') as f:
         f.write('%d' % page)
 
 
@@ -229,7 +231,7 @@ def get_persisted_page(default=1):
     try:
         with open(_DATA_PATH+'/current_page.txt', 'r') as f:
             return int(f.read())
-    except IOError:
+    except (IOError, FileNotFoundError):
         return default
 
 
