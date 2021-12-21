@@ -126,7 +126,7 @@ def download_image(url, path):
         )
 
 
-def fetch_image(image_id, image_metadata=None, scaling="large",
+def fetch_image(image_id, image_metadata=None, scaling="full",
                 overwite=False, overwitemeta=False):
     # figure out where to put the data
     directory = build_path(image_id, prefix=_DATA_PATH + "/images")
